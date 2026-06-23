@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quest List - Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="panels-container">
+
+        <div class="panel player-panel">
+            <header>
+                <h1>Quest Board</h1>
+                <div class="score-board">
+                    <span>Gold: </span>
+                    <span id="score">0</span> 💰
+                </div>
+            </header>
+
+            <div class="pet-card" style="border-color: #ffd700; margin-bottom: 15px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="margin: 0;">Streak History</h3>
+                    <div style="font-size: 0.9rem; color: #aaa;">
+                        🔥 <span id="normal-count">0</span> | 👑 <span id="gold-count">0</span>
+                    </div>
+                </div>
+
+                <div id="streak-timeline-container"></div>
+
+                <div id="rollover-log"
+                    style="font-size: 0.85rem; color: #ffd700; text-align: center; margin-top: 15px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 8px;">
+                    Welcome back!
+                </div>
+            </div>
+
+            <div class="pet-card">
+                <h3>Companion Status</h3>
+                <div class="pet-display">
+                    <span id="pet-avatar" style="font-size: 2.5rem;">🥚</span>
+                    <div>
+                        <strong id="pet-name">Mysterious Bird Egg</strong><br>
+                        <span id="pet-stage" style="color: #aaa; font-size: 0.9rem;">Stage 1: Unhatched</span>
+                    </div>
+                </div>
+            </div>
+
+            <main>
+                <h2>Active Quests</h2>
+                <ul id="task-list"></ul>
+            </main>
+        </div>
+
+        <div class="panel shop-panel">
+            <header>
+                <h1>Reward Shop</h1>
+            </header>
+            <main>
+                <div id="shop-container"></div>
+            </main>
+        </div>
+
+        <div class="panel admin-panel">
+            <header>
+                <h2>Admin Control</h2>
+            </header>
+            <main>
+                <section class="task-form">
+                    <h3>Create New Quest</h3>
+                    <input type="text" id="task-input" placeholder="e.g., 30 Push-ups...">
+                    <select id="difficulty-input">
+                        <option value="10">Easy (+10 Gold)</option>
+                        <option value="20">Medium (+20 Gold)</option>
+                        <option value="50">Hard (+50 Gold)</option>
+                    </select>
+
+                    <select id="type-input">
+                        <option value="recurring">🔄 Daily Recurring</option>
+                        <option value="onetime">⚡ One-Time Quest</option>
+                    </select>
+
+                    <button id="add-btn">Add Quest to Board</button>
+                    <button id="reset-gold-btn" class="danger-btn">Reset All Data</button>
+                </section>
+
+                <section class="manage-section">
+                    <h3>Manage Board</h3>
+                    <ul id="admin-task-list"></ul>
+                </section>
+            </main>
+        </div>
+
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
