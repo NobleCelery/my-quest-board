@@ -9,13 +9,13 @@ let lastOpenDate = localStorage.getItem('lastOpenDate') || "";
 let normalStreak = parseInt(localStorage.getItem('normalStreak')) || 0;
 let goldStreak = parseInt(localStorage.getItem('goldStreak')) || 0;
 
-// NEW: Store history for the last 7 days array
+// Store history for the last 7 days array
 let streakHistory = JSON.parse(localStorage.getItem('streakHistory')) || [];
 
 // Custom unlocks tracking
 let activeCursor = localStorage.getItem('activeCursor') || "normal";
 let activeTheme = localStorage.getItem('activeTheme') || "theme-default";
-let petLevel = parseInt(localStorage.getItem('petLevel')) || 1;
+let petLevel = parseInt(localStorage.getItem('petLevel')) || 1; 
 
 // INVENTORY SYSTEM
 let unlockedItems = JSON.parse(localStorage.getItem('unlockedItems')) || ["c3", "t3"];
@@ -78,8 +78,7 @@ applyCosmetics();
 
 // 2. AUTOMATIC MIDNIGHT CALCULATOR ENGINE
 function checkDailyRollover() {
-    const todayObj = new Date();
-    const todayDateStr = todayObj.toDateString();
+    const todayDateStr = new Date().toDateString();
 
     if (!lastOpenDate) {
         localStorage.setItem('lastOpenDate', todayDateStr);
@@ -89,7 +88,7 @@ function checkDailyRollover() {
 
     if (lastOpenDate !== todayDateStr) {
         const dailyTrackers = dailyQuests.filter(q => q.type === "recurring");
-        let statusResult = "missed";
+        let statusResult = "missed"; 
 
         if (dailyTrackers.length > 0) {
             const completedCount = dailyTrackers.filter(q => q.completedToday).length;
@@ -115,19 +114,16 @@ function checkDailyRollover() {
             }
         }
 
-        // Add yesterday's actual result to history record
         const yesterdayObj = new Date();
         yesterdayObj.setDate(yesterdayObj.getDate() - 1);
-
+        
         streakHistory.push({
             dayLabel: yesterdayObj.toLocaleDateString('en-US', { weekday: 'short' }).substring(0, 2),
             status: statusResult
         });
 
-        // Limit timeline log size to the last 7 calendar days
         if (streakHistory.length > 7) streakHistory.shift();
 
-        // Wipe completion flags so tasks are fresh for the new day
         dailyQuests.forEach(q => {
             if (q.type === "recurring") q.completedToday = false;
         });
@@ -159,17 +155,12 @@ function updateInterface() {
     adminTaskList.innerHTML = "";
     shopContainer.innerHTML = "";
 
-    // Update Counter texts
     normalCount.innerText = "Regular: " + normalStreak + "d";
     goldCount.innerText = "Max: " + goldStreak + "d";
 
     // --- DRAW VISUAL STREAK TIMELINE LINE ---
     timelineContainer.innerHTML = "";
-
-    // Ensure we always have exactly 7 items shown relative to calendar changes
     let currentDisplayItems = [...streakHistory];
-
-    // Safety fallback fill if timeline log array is cleared
     while (currentDisplayItems.length < 7) {
         currentDisplayItems.unshift({ dayLabel: "??", status: "empty" });
     }
@@ -180,8 +171,7 @@ function updateInterface() {
 
         const circle = document.createElement('div');
         circle.className = "node-circle";
-
-        // Apply color labels
+        
         if (day.status === "gold") {
             circle.classList.add("status-gold");
             circle.innerText = "👑";
@@ -204,7 +194,6 @@ function updateInterface() {
         timelineContainer.appendChild(node);
     });
 
-    // Update Pet Area
     const currentPet = petStages[petLevel];
     petAvatar.innerText = currentPet.avatar;
     petName.innerText = currentPet.name;
@@ -215,7 +204,7 @@ function updateInterface() {
         const playerLi = document.createElement('li');
         const prefix = quest.type === "recurring" ? "🔄" : "⚡";
         playerLi.style.borderLeft = quest.completedToday ? "5px solid #4caf50" : "5px solid #ffd700";
-
+        
         if (quest.completedToday) {
             playerLi.style.opacity = "0.5";
             playerLi.innerHTML = `
@@ -227,7 +216,7 @@ function updateInterface() {
                 <span>${prefix} ${quest.text}</span>
                 <button class="complete-btn">Complete (+${quest.gold}g)</button>
             `;
-            playerLi.querySelector('.complete-btn').addEventListener('click', function () {
+            playerLi.querySelector('.complete-btn').addEventListener('click', function() {
                 totalGold += quest.gold;
                 if (quest.type === "onetime") {
                     dailyQuests = dailyQuests.filter(q => q.id !== quest.id);
@@ -240,14 +229,13 @@ function updateInterface() {
         }
         taskList.appendChild(playerLi);
 
-        // --- DRAW ADMIN LIST ---
         const adminLi = document.createElement('li');
         const typeLabel = quest.type === "recurring" ? "Daily" : "One-Time";
         adminLi.innerHTML = `
             <span>[${typeLabel}] ${quest.text} (${quest.gold}g)</span>
             <button class="delete-btn">Delete</button>
         `;
-        adminLi.querySelector('.delete-btn').addEventListener('click', function () {
+        adminLi.querySelector('.delete-btn').addEventListener('click', function() {
             dailyQuests = dailyQuests.filter(q => q.id !== quest.id);
             saveData();
             updateInterface();
@@ -281,17 +269,32 @@ function updateInterface() {
                     <span>${item.text}</span>
                     <span class="done-badge" style="color: #00bcd4; font-weight:bold;">Equipped</span>
                 `;
-            } else if (isUnlocked || (item.type === "pet" && petLevel >= item.levelReq)) {
+            } else if (item.type === "pet" && petLevel >= item.levelReq) {
+                // Keep the pet cards locked visually on "Evolved"
                 shopLi.innerHTML = `
                     <span>${item.text}</span>
                     <span class="done-badge" style="color: #4a90e2; font-weight:bold;">Evolved</span>
                 `;
+            } else if (isUnlocked) {
+                // FIXED: Cursors and Themes now successfully render their active swap buttons
+                shopLi.innerHTML = `
+                    <span>${item.text}</span>
+                    <button class="buy-btn" style="background-color: #4a90e2;">Equip (Free)</button>
+                `;
+                shopLi.querySelector('.buy-btn').addEventListener('click', function() {
+                    if (item.type === "cursor") activeCursor = item.value;
+                    if (item.type === "theme") activeTheme = item.value;
+                    
+                    saveData();
+                    applyCosmetics();
+                    updateInterface();
+                });
             } else {
                 shopLi.innerHTML = `
                     <span>${item.text}</span>
                     <button class="buy-btn">Buy (${item.cost}g)</button>
                 `;
-                shopLi.querySelector('.buy-btn').addEventListener('click', function () {
+                shopLi.querySelector('.buy-btn').addEventListener('click', function() {
                     if (totalGold >= item.cost) {
                         totalGold -= item.cost;
                         unlockedItems.push(item.id);
@@ -315,7 +318,7 @@ function updateInterface() {
 }
 
 function applyCosmetics() {
-    document.body.className = "";
+    document.body.className = ""; 
     if (activeCursor !== "normal") document.body.classList.add(activeCursor);
     if (activeTheme !== "theme-default") document.body.classList.add(activeTheme);
 }
@@ -354,7 +357,6 @@ function addDailyQuest() {
 addBtn.addEventListener('click', addDailyQuest);
 taskInput.addEventListener('keypress', e => { if (e.key === 'Enter') addDailyQuest(); });
 
-// TESTING RESET
 resetGoldBtn.addEventListener('click', () => {
     if (confirm("Reset everything? This clears your Gold, Streaks, Custom Cosmetics, and patches all locks back up.")) {
         totalGold = 0;
@@ -366,7 +368,7 @@ resetGoldBtn.addEventListener('click', () => {
         unlockedItems = ["c3", "t3"];
         lastOpenDate = new Date().toDateString();
         initializeBlankHistory();
-
+        
         saveData();
         applyCosmetics();
         updateInterface();
